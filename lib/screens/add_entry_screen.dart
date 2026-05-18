@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../models/mood.dart';
 import '../providers/diary_provider.dart';
+import 'package:intl/intl.dart';
 
 class AddEntryScreen extends StatefulWidget {
   final DiaryEntry? existingEntry;
@@ -18,6 +19,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   final List<String> _availableActivities = ['Работа', 'Спорт', 'Дом', 'Друзья', 'Хобби', 'Путешествие', 'Еда'];
   late List<String> _selectedActivities;
   late TextEditingController _noteController;
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
 
   bool _isEditing = false;
 
@@ -30,10 +33,14 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       _selectedMood = widget.existingEntry!.mood;
       _selectedActivities = List.from(widget.existingEntry!.activities);
       _noteController = TextEditingController(text: widget.existingEntry!.note ?? '');
+      _selectedDate = widget.existingEntry!.date;
+      _selectedTime = TimeOfDay.fromDateTime(widget.existingEntry!.date);
     } else {
       _selectedMood = Mood.all[2];
       _selectedActivities = [];
       _noteController = TextEditingController();
+      _selectedDate = DateTime.now();
+      _selectedTime = TimeOfDay.now();
     }
   }
 
@@ -57,11 +64,19 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
 
     final noteText = _noteController.text.isEmpty ? null : _noteController.text;
 
+    final combinedDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
     if (_isEditing && widget.existingEntry != null) {
 
       final updatedEntry = DiaryEntry.create(
         id: widget.existingEntry!.id,
-        date: widget.existingEntry!.date,
+        date: combinedDateTime,
         mood: _selectedMood,
         activities: _selectedActivities,
         note: noteText,
@@ -70,8 +85,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       Provider.of<DiaryProvider>(context, listen: false).updateEntry(updatedEntry);
     } else {
       final newEntry = DiaryEntry.create(
-        id: DateTime.now().toString(),
-        date: DateTime.now(),
+        id: combinedDateTime.toString(),
+        date: combinedDateTime,
         mood: _selectedMood,
         activities: _selectedActivities,
         note: noteText,
@@ -99,6 +114,46 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Выбор даты и времени
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    title: Text('Дата', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                    subtitle: Text(DateFormat('dd MMMM yyyy').format(_selectedDate), style: TextStyle(fontSize: 16)),
+                    leading: Icon(Icons.calendar_today, color: _selectedMood.color),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now().add(Duration(days: 1)),
+                      );
+                      if (picked != null) {
+                        setState(() => _selectedDate = picked);
+                      }
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: ListTile(
+                    title: Text('Время', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                    subtitle: Text(_selectedTime.format(context), style: TextStyle(fontSize: 16)),
+                    leading: Icon(Icons.access_time, color: _selectedMood.color),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: _selectedTime,
+                      );
+                      if (picked != null) {
+                        setState(() => _selectedTime = picked);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
             // Выбор настроения
             Text('Как прошел день?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
