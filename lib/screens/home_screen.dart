@@ -3,9 +3,95 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/diary_provider.dart';
 import 'add_entry_screen.dart';
+import 'calendar_screen.dart';
+import 'stats_screen.dart';
+import 'more_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    EntriesTab(),
+    CalendarScreen(),
+    StatsScreen(),
+    MoreScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(0, Icons.article_rounded, 'Записи'),
+              _buildNavItem(1, Icons.calendar_month_rounded, 'Календарь'),
+              SizedBox(width: 48), // Место для центральной кнопки
+              _buildNavItem(2, Icons.bar_chart_rounded, 'Статистика'),
+              _buildNavItem(3, Icons.more_horiz_rounded, 'Больше'),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddEntryScreen()),
+          );
+        },
+        backgroundColor: Colors.indigo,
+        child: Icon(Icons.add, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Colors.indigo : Colors.grey,
+            size: 24,
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isSelected ? Colors.indigo : Colors.grey,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class EntriesTab extends StatelessWidget {
+  const EntriesTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +132,7 @@ class HomeScreen extends StatelessWidget {
 
               return Dismissible(
                 key: Key(entry.id),
-                direction: DismissDirection.endToStart, // Только свайп влево
+                direction: DismissDirection.endToStart,
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: EdgeInsets.only(right: 20),
@@ -57,7 +143,6 @@ class HomeScreen extends StatelessWidget {
                   child: Icon(Icons.delete_outline, color: Colors.white, size: 30),
                 ),
                 confirmDismiss: (direction) async {
-                  // Подтверждение перед удалением
                   return await showDialog(
                     context: context,
                     builder: (ctx) => AlertDialog(
@@ -85,7 +170,6 @@ class HomeScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: InkWell(
                     onTap: () {
-                      // Переход к редактированию
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -98,14 +182,12 @@ class HomeScreen extends StatelessWidget {
                       padding: EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          // Аватар настроения
                           CircleAvatar(
                             radius: 28,
                             backgroundColor: entry.mood.color,
                             child: Icon(entry.mood.icon, color: Colors.white, size: 30),
                           ),
                           SizedBox(width: 16),
-                          // Информация
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +219,6 @@ class HomeScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          // Иконка редактирования
                           Icon(Icons.chevron_right, color: Colors.grey[400]),
                         ],
                       ),
@@ -148,17 +229,6 @@ class HomeScreen extends StatelessWidget {
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddEntryScreen()),
-          );
-        },
-        icon: Icon(Icons.add),
-        label: Text('Запись'),
-        backgroundColor: Colors.indigo,
       ),
     );
   }
