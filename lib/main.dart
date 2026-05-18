@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'providers/diary_provider.dart';
 import 'screens/home_screen.dart';
 import 'models/entry.dart';
+import 'models/activity.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,8 +15,10 @@ void main() async {
   await Hive.initFlutter();
 
   Hive.registerAdapter(DiaryEntryAdapter());
+  Hive.registerAdapter(ActivityListAdapter());
 
   await Hive.openBox<DiaryEntry>('diary_entries');
+  await Hive.openBox<ActivityList>('activities');
 
   await initializeDateFormatting('ru', null);
 

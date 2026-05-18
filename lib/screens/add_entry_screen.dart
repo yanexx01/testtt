@@ -16,7 +16,7 @@ class AddEntryScreen extends StatefulWidget {
 
 class _AddEntryScreenState extends State<AddEntryScreen> {
   late Mood _selectedMood;
-  final List<String> _availableActivities = ['Работа', 'Спорт', 'Дом', 'Друзья', 'Хобби', 'Путешествие', 'Еда'];
+  // final List<String> _availableActivities = ['Работа', 'Спорт', 'Дом', 'Друзья', 'Хобби', 'Путешествие', 'Еда'];
   late List<String> _selectedActivities;
   late TextEditingController _noteController;
   late DateTime _selectedDate;
@@ -42,6 +42,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       _selectedDate = DateTime.now();
       _selectedTime = TimeOfDay.now();
     }
+  }
+
+  List<String> get _availableActivities {
+    return Provider.of<DiaryProvider>(context, listen: false).activities;
   }
 
   @override
