@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'edit_activities_screen.dart';
+import '../providers/auth_provider.dart';
+import 'auth_screen.dart';
+import 'profile_screen.dart';
+import 'package:provider/provider.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isLoggedIn = authProvider.isLoggedIn;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Больше'),
@@ -17,6 +24,20 @@ class MoreScreen extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.all(16),
         children: [
+          _buildMenuCard(
+            context,
+            icon: Icons.person_outline_rounded,
+            title: 'Личный кабинет',
+            subtitle: isLoggedIn ? 'Управление профилем' : 'Вход и регистрация',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => isLoggedIn ? const ProfileScreen() : const AuthScreen(),
+                ),
+              );
+            },
+          ),
           _buildMenuCard(
             context,
             icon: Icons.manage_search_rounded,
