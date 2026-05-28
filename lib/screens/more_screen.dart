@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'edit_activities_screen.dart';
+import 'auth_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -17,6 +18,32 @@ class MoreScreen extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.all(16),
         children: [
+          _buildMenuCard(
+            context,
+            icon: Icons.login_rounded,
+            title: 'Вход / Регистрация',
+            subtitle: 'Синхронизация данных между устройствами',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AuthScreen()),
+              );
+            },
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.sync_rounded,
+            title: 'Синхронизация',
+            subtitle: 'Заглушка - синхронизация заметок и активностей',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Синхронизация в разработке...'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            },
+          ),
           _buildMenuCard(
             context,
             icon: Icons.manage_search_rounded,
