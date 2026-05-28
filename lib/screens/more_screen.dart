@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'edit_activities_screen.dart';
+import 'auth_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -17,6 +19,15 @@ class MoreScreen extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.all(16),
         children: [
+          _buildMenuCard(
+            context,
+            icon: Icons.person_outline_rounded,
+            title: 'Личный кабинет',
+            subtitle: 'Вход и синхронизация данных',
+            onTap: () {
+              Navigator.pushNamed(context, '/auth');
+            },
+          ),
           _buildMenuCard(
             context,
             icon: Icons.manage_search_rounded,
