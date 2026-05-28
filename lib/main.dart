@@ -5,9 +5,12 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'providers/diary_provider.dart';
+import 'providers/auth_provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/auth_screen.dart';
 import 'models/entry.dart';
 import 'models/activity.dart';
+import 'models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,9 +19,11 @@ void main() async {
 
   Hive.registerAdapter(DiaryEntryAdapter());
   Hive.registerAdapter(ActivityListAdapter());
+  Hive.registerAdapter(UserAdapter());
 
   await Hive.openBox<DiaryEntry>('diary_entries');
   await Hive.openBox<ActivityList>('activities');
+  await Hive.openBox<User>('users');
 
   await initializeDateFormatting('ru', null);
 
@@ -33,6 +38,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => DiaryProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: MaterialApp(
         title: 'Мой Дневник',
@@ -47,9 +53,26 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.indigo,
           useMaterial3: true,
         ),
-        home: HomeScreen(),
+        home: const AuthWrapper(),
         debugShowCheckedModeBanner: false,
       ),
+    );
+  }
+}
+
+/// Обертка для проверки состояния авторизации
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        if (authProvider.isAuthenticated) {
+          return HomeScreen();
+        }
+        return AuthScreen();
+      },
     );
   }
 }

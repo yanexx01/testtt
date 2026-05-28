@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/sync_service.dart';
 import 'edit_activities_screen.dart';
+import 'auth_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -26,6 +30,92 @@ class MoreScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => EditActivitiesScreen()),
+              );
+            },
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.sync_rounded,
+            title: 'Синхронизация',
+            subtitle: 'Синхронизация заметок и активностей',
+            onTap: () async {
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              final user = authProvider.currentUser;
+              
+              if (user == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Пользователь не авторизован'), backgroundColor: Colors.red),
+                );
+                return;
+              }
+
+              // Показываем индикатор загрузки
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (ctx) => AlertDialog(
+                  content: Row(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(width: 20),
+                      Text('Синхронизация...'),
+                    ],
+                  ),
+                ),
+              );
+
+              try {
+                final syncService = SyncService();
+                final success = await syncService.syncData(user);
+                
+                if (context.mounted) {
+                  Navigator.pop(context); // Закрываем диалог
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success 
+                        ? 'Синхронизация успешна!' 
+                        : 'Ошибка синхронизации'),
+                      backgroundColor: success ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.logout_rounded,
+            title: 'Выйти',
+            subtitle: 'Выйти из аккаунта',
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text('Выйти?'),
+                  content: Text('Вы уверены, что хотите выйти из аккаунта?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text('Отмена'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Provider.of<AuthProvider>(context, listen: false).logout();
+                        Navigator.pop(ctx);
+                        // AuthWrapper автоматически переключит на экран авторизации
+                      },
+                      child: Text('Выйти', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
               );
             },
           ),
