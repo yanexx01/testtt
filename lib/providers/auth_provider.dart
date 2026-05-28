@@ -4,16 +4,44 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import '../models/auth.dart';
 
+
 class AuthProvider with ChangeNotifier {
   late Box<User> _userBox;
+  late Box<String> _sessionBox;
   User? _currentUser;
 
   AuthProvider() {
     _userBox = Hive.box<User>('users');
+    _sessionBox = Hive.box<String>('session');
+    _restoreSession();
   }
 
   User? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
+
+  void _restoreSession() {
+    final userId = _sessionBox.get('current_user_id');
+    if (userId != null && userId.isNotEmpty) {
+      try {
+        final user = _userBox.get(userId);
+        if (user != null) {
+          _currentUser = user;
+          notifyListeners();
+        }
+      } catch (e) {
+        // Session invalid, clear it
+        _sessionBox.delete('current_user_id');
+      }
+    }
+  }
+
+  Future<void> _saveSession(String userId) async {
+    await _sessionBox.put('current_user_id', userId);
+  }
+
+  Future<void> _clearSession() async {
+    await _sessionBox.delete('current_user_id');
+  }
 
   String _hashPassword(String password) {
     final bytes = utf8.encode(password);
@@ -27,9 +55,11 @@ class AuthProvider with ChangeNotifier {
     required String name,
   }) async {
     try {
+      final normalizedEmail = email.toLowerCase().trim();
+      
       final existingUser = _userBox.values.firstWhere(
-        (user) => user.email.toLowerCase() == email.toLowerCase(),
-        orElse: () => User(),
+        (user) => user.email == normalizedEmail,
+        orElse: () => User()..id = '',
       );
 
       if (existingUser.id.isNotEmpty) {
@@ -45,6 +75,7 @@ class AuthProvider with ChangeNotifier {
 
       await _userBox.put(newUser.id, newUser);
       _currentUser = newUser;
+      await _saveSession(newUser.id);
       notifyListeners();
       return true;
     } catch (e) {
@@ -71,6 +102,7 @@ class AuthProvider with ChangeNotifier {
       }
 
       _currentUser = user;
+      await _saveSession(user.id);
       notifyListeners();
       return true;
     } catch (e) {
@@ -78,7 +110,8 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  void logout() {
+  void logout() async {
+    await _clearSession();
     _currentUser = null;
     notifyListeners();
   }
