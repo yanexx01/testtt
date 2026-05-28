@@ -97,7 +97,7 @@ class EntriesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Мой Дневник'),
+        title: Text('Moodify'),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.indigo,
@@ -160,9 +160,9 @@ class EntriesTab extends StatelessWidget {
                 },
                 onDismissed: (direction) {
                   Provider.of<DiaryProvider>(context, listen: false).deleteEntry(entry.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Запись удалена'), backgroundColor: Colors.red),
-                  );
+                  // ScaffoldMessenger.of(context).showSnackBar(
+                  //   SnackBar(content: Text('Запись удалена'), backgroundColor: Colors.red),
+                  // );
                 },
                 child: Card(
                   elevation: 2,

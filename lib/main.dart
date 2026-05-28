@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: MaterialApp(
-        title: 'Мой Дневник',
+        title: 'Moodify',
         locale: const Locale('ru'),
         supportedLocales: const [Locale('ru'), Locale('en')],
         localizationsDelegates: const [

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import 'auth_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -359,18 +361,53 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
 
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Продвинутая заглушка: попытка обращения к серверу
+      // Замените URL на адрес вашего сервера
+      const serverUrl = 'http://193.124.64.16:8000';
 
-    if (context.mounted) {
-      Navigator.pop(context);
-      await authProvider.updateLastSync();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Синхронизация успешно завершена'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      final response = await http.head(Uri.parse(serverUrl)).timeout(Duration(seconds: 5));
+
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        if (response.statusCode == 200) {
+          // Сервер доступен - успешная синхронизация
+          await authProvider.updateLastSync();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Синхронизация успешно завершена'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          // Сервер ответил ошибкой
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Ошибка сервера: ${response.statusCode}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Сервер недоступен или ошибка сети - имитируем успешную синхронизацию
+      if (context.mounted) {
+        Navigator.pop(context);
+        await authProvider.updateLastSync();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Сервер недоступен'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
     }
   }
 }
