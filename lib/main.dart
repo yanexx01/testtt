@@ -23,6 +23,7 @@ void main() async {
   await Hive.openBox<DiaryEntry>('diary_entries');
   await Hive.openBox<ActivityList>('activities');
   await Hive.openBox<User>('users');
+  await Hive.openBox<String>('session');
 
   await initializeDateFormatting('ru', null);
 
